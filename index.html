@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
+    <title>⚽🏆🌍🥇🏟 PASS. — Minimalist Tactical Football</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PASS. | Minimalist Tactical Strategy</title>
+    <style>
+        /* CSS VARIABLES & RESET */
+        :root {
+            --bg-page: #080B0A;
+            --bg-sec: #0D1210;
+            --pitch: #12352C;
+            --pitch-alt: #153B31;
+            --lines: rgba(255, 255, 255, 0.25);
+            --player: #E7E7E1;
+            --ball: #F5F5EF;
+            --text-pri: #F1F1EC;
+            --text-sec: #858D88;
+            --accent: #D7B35A;
+            --success: #6FD39A;
+            --danger: #E36C72;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-pri);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* SCREENS */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            background: var(--bg-page);
+        }
+        .screen.active { display: flex; }
+
+        /* TYPOGRAPHY & UI ELEMENTS */
+        h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+        .subtitle { font-size: 1.1rem; color: var(--text-sec); margin-bottom: 3rem; text-align: center; max-width: 320px; line-height: 1.5; }
+        
+        .btn {
+            background: var(--text-pri);
+            color: var(--bg-page);
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2rem;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn:active { transform: translateY(1px); }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--text-pri);
+            border: 1px solid var(--lines);
+            margin-top: 1rem;
+        }
+
+        .settings-group { margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; }
+        .settings-label { font-size: 0.75rem; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+        
+        .toggle-row { display: flex; gap: 0.5rem; width: 100%; background: var(--bg-sec); padding: 0.25rem; border-radius: 6px; border: 1px solid var(--lines); }
+        .toggle-btn {
+            flex: 1; padding: 0.6rem; text-align: center; cursor: pointer; border-radius: 4px;
+            font-size: 0.85rem; font-weight: 600; color: var(--text-sec); transition: all 0.2s;
+        }
+        .toggle-btn.active { background: var(--lines); color: var(--text-pri); }
+        
+        .options-row { display: flex; gap: 0.5rem; width: 100%; justify-content: space-between; margin-top: 0.5rem; }
+        .option-btn {
+            flex: 1; padding: 0.5rem 0; text-align: center; cursor: pointer; border-radius: 4px; border: 1px solid transparent;
+            font-size: 0.85rem; font-weight: 600; color: var(--text-sec); transition: all 0.2s; background: var(--bg-sec);
+        }
+        .option-btn.active { border-color: var(--lines); color: var(--text-pri); background: rgba(255,255,255,0.05); }
+
+        /* GAME UI */
+        #game-layout {
+            display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 500px;
+            margin: 0 auto; padding: 1rem;
+        }
+
+        .hud-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; }
+        .score-display { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; letter-spacing: 0.05em; }
+        .score-lbl { font-size: 0.7rem; color: var(--text-sec); text-transform: uppercase; }
+        .score-val { width: 24px; text-align: center; }
+        .score-val.user { color: var(--text-pri); }
+        .score-val.opp { color: var(--danger); }
+        .score-div { color: var(--text-sec); font-weight: 400; }
+        
+        .timer-display { font-variant-numeric: tabular-nums; font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+
+        .hud-bottom {
+            display: flex; justify-content: space-between; padding-top: 1rem;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-sec); text-transform: uppercase;
+        }
+        .hud-bottom span strong { color: var(--text-pri); margin-left: 0.25rem; font-size: 0.9rem; }
+
+        /* PITCH */
+        .pitch-container {
+            flex: 1; width: 100%; background: var(--pitch); border-radius: 8px; position: relative;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.3); overflow: hidden; border: 1px solid var(--lines);
+        }
+        
+        .pitch-lines { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+        
+        /* Goal Zone (Subtle) */
+        .goal-zone {
+            position: absolute; top: 0; left: 0; right: 0; height: 22%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-bottom: 1px dashed rgba(255,255,255,0.15);
+        }
+        
+        /* Open Goal Visual */
+        .goal-box {
+            position: absolute; top: 0; left: 35%; right: 35%; height: 12px;
+            border: 1px solid var(--lines); border-top: none;
+            background: rgba(255,255,255,0.02);
+            border-bottom-left-radius: 2px; border-bottom-right-radius: 2px;
+        }
+
+        /* Center marking */
+        .line-center { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: var(--lines); }
+        .circle-center { position: absolute; top: 50%; left: 50%; width: 25%; aspect-ratio: 1; border: 1px solid var(--lines); border-radius: 50%; transform: translate(-50%, -50%); }
+
+        /* PLAYERS & BALL */
+        .layer-interactive { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+        .layer-interactive.locked { pointer-events: none; }
+        
+        .player {
+            position: absolute; width: 44px; height: 44px; /* Hit area */
+            transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 2; pointer-events: auto;
+        }
+
+        /* Tactical Marker Silhouette */
+        .player-visual {
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0.85; transition: transform 0.2s, opacity 0.2s, filter 0.2s;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+        }
+        .player-head { width: 7px; height: 7px; background: var(--player); border-radius: 50%; }
+        .player-torso { width: 3px; height: 11px; background: var(--player); margin-top: 1px; border-radius: 1px; }
+        .player-legs { display: flex; gap: 3px; margin-top: 1px; }
+        .player-leg { width: 2px; height: 9px; background: var(--player); border-radius: 1px; }
+        .player-leg.l { transform: rotate(15deg); transform-origin: top; }
+        .player-leg.r { transform: rotate(-15deg); transform-origin: top; }
+
+        /* Player States */
+        .player:hover .player-visual { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px rgba(255,255,255,0.3)); }
+        
+        /* Possession indicator (Subtle) */
+        .player.has-possession .player-visual {
+            opacity: 1;
+            filter: drop-shadow(0 0 8px rgba(215, 179, 90, 0.4));
+        }
+        .player.has-possession .player-head { box-shadow: 0 0 0 2px rgba(215, 179, 90, 0.3); }
+
+        #ball {
+            position: absolute; width: 8px; height: 8px;
+            background: var(--ball); border-radius: 50%;
+            transform: translate(-50%, 8px); /* Near feet */
+            z-index: 3; pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 4px rgba(255,255,255,0.4);
+            transition: left 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                        top 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* OVERLAYS */
+        #message-overlay {
+            position: absolute; top: 50%; left: 50%; width: 100%;
+            transform: translate(-50%, -50%) scale(0.8);
+            font-size: 2.5rem; font-weight: 800; letter-spacing: 0.1em;
+            color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            opacity: 0; pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10; text-align: center;
+        }
+        #message-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        #message-overlay.success { color: var(--success); }
+        #message-overlay.danger { color: var(--danger); }
+        #message-overlay.accent { color: var(--accent); }
+
+        .pulse-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--text-pri); opacity: 0; pointer-events: none; z-index: 1;
+            transition: opacity 0.15s;
+        }
+        .pulse-overlay.flash { opacity: 0.1; }
+
+        /* END SCREEN STATS */
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+            margin-bottom: 2rem; width: 100%; max-width: 320px;
+        }
+        .stat-item {
+            background: var(--bg-sec); padding: 1rem; border-radius: 6px;
+            display: flex; flex-direction: column; align-items: center;
+            border: 1px solid var(--lines);
+        }
+        .stat-lbl { font-size: 0.7rem; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.35rem;}
+        .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--text-pri); }
+        
+        .end-header { margin-bottom: 2rem; text-align: center; }
+        .end-title { font-size: 1rem; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;}
+        .end-score { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.02em; display: flex; justify-content: center; gap: 1rem; align-items: center;}
+        .end-score .opp { color: var(--danger); }
+
+        /* AUDIO BTN */
+        #audio-btn {
+            position: absolute; top: 1rem; right: 1rem; background: transparent; border: none;
+            color: var(--text-sec); font-size: 1.5rem; cursor: pointer; z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="audio-btn" onclick="toggleAudio()">🔈</button>
+
+    <!-- START SCREEN -->
+    <div id="screen-start" class="screen active">
+        <h1>PASS.</h1>
+        <div class="subtitle">Everyone looks the same.<br>Find your team.</div>
+        
+        <div class="settings-group">
+            <div class="settings-label">Game Length</div>
+            <div class="toggle-row">
+                <div class="toggle-btn active" onclick="setMode('time')" id="tg-time">TIME</div>
+                <div class="toggle-btn" onclick="setMode('goals')" id="tg-goals">GOALS</div>
+            </div>
+            
+            <div class="options-row" id="opt-time">
+                <div class="option-btn" onclick="setTarget(60, this)">1 MIN</div>
+                <div class="option-btn active" onclick="setTarget(180, this)">3 MIN</div>
+                <div class="option-btn" onclick="setTarget(300, this)">5 MIN</div>
+            </div>
+            <div class="options-row" id="opt-goals" style="display: none;">
+                <div class="option-btn" onclick="setTarget(3, this)">3</div>
+                <div class="option-btn active" onclick="setTarget(5, this)">5</div>
+                <div class="option-btn" onclick="setTarget(10, this)">10</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="screen">
+        <div id="game-layout">
+            <div class="hud-top">
+                <div class="score-display">
+                    <span class="score-lbl">YOU</span>
+                    <div class="score-val user" id="hud-score-user">0</div>
+                    <div class="score-div">—</div>
+                    <div class="score-val opp" id="hud-score-opp">0</div>
+                    <span class="score-lbl" style="color:var(--danger)">TOVS</span>
+                </div>
+                <div class="timer-display" id="hud-timer">03:00</div>
+            </div>
+
+            <div class="pitch-container">
+                <div class="pitch-lines">
+                    <div class="goal-zone"></div>
+                    <div class="goal-box"></div>
+                    <div class="line-center"></div>
+                    <div class="circle-center"></div>
+                </div>
+                <div class="pulse-overlay" id="pitch-pulse"></div>
+                <div class="layer-interactive" id="players-layer"></div>
+                <div id="ball"></div>
+                <div id="message-overlay">GOAL!</div>
+            </div>
+
+            <div class="hud-bottom">
+                <span>Passes <strong id="hud-passes">0</strong></span>
+                <span>Success <strong id="hud-success-rate">0%</strong></span>
+                <span>Streak <strong id="hud-streak">0</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="screen-end" class="screen">
+        <div class="end-header">
+            <div class="end-title" id="end-reason">FULL TIME</div>
+            <div class="end-score">
+                <span id="end-score-user">0</span>
+                <span class="score-div">—</span>
+                <span class="opp" id="end-score-opp">0</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-sec); letter-spacing: 0.1em; margin-top:0.5rem">GOALS <span style="display:inline-block; width:1.5rem"></span> TURNOVERS</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-lbl">Passes</div>
+                <div class="stat-val" id="end-passes">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-lbl">Success Rate</div>
+                <div class="stat-val" id="end-success-rate">0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-lbl">Intercepted</div>
+                <div class="stat-val" style="color:var(--danger)" id="end-intercepts">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-lbl">Offsides</div>
+                <div class="stat-val" style="color:var(--accent)" id="end-offsides">0</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="restartGame()">Play Again</button>
+        <button class="btn-outline btn" onclick="showStartScreen()">Menu</button>
+    </div>
+
+    <script>
+        // --- AUDIO SYSTEM ---
+        let actx = null;
+        let audioEnabled = false;
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audio-btn').innerText = audioEnabled ? '🔊' : '🔈';
+            if (audioEnabled && !actx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) actx = new AudioContext();
+            }
+            if (actx && actx.state === 'suspended') actx.resume();
+        }
+
+        function playSound(type) {
+            if (!audioEnabled || !actx) return;
+            const t = actx.currentTime;
+            const osc = actx.createOscillator();
+            const gain = actx.createGain();
+            osc.connect(gain);
+            gain.connect(actx.destination);
+
+            if (type === 'pass') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, t);
+                osc.frequency.exponentialRampToValueAtTime(150, t + 0.1);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
+            } else if (type === 'intercept') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, t);
+                osc.frequency.linearRampToValueAtTime(80, t + 0.3);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0.01, t + 0.3);
+                osc.start(t); osc.stop(t + 0.3);
+            } else if (type === 'offside') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400, t);
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.setValueAtTime(0, t + 0.1);
+                osc.frequency.setValueAtTime(400, t + 0.15);
+                gain.gain.setValueAtTime(0.05, t + 0.15);
+                gain.gain.linearRampToValueAtTime(0.01, t + 0.3);
+                osc.start(t); osc.stop(t + 0.3);
+            } else if (type === 'goal') {
+                const freqs = [440, 554, 659, 880];
+                freqs.forEach((f, i) => {
+                    const o = actx.createOscillator();
+                    const g = actx.createGain();
+                    o.connect(g); g.connect(actx.destination);
+                    o.type = 'sine';
+                    o.frequency.value = f;
+                    const st = t + (i * 0.1);
+                    g.gain.setValueAtTime(0, st);
+                    g.gain.linearRampToValueAtTime(0.15, st + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.01, st + 0.7);
+                    o.start(st); o.stop(st + 0.7);
+                });
+            }
+        }
+
+        // --- GAME STATE ---
+        const state = {
+            mode: 'time',
+            timeTarget: 180,
+            goalsTarget: 5,
+            
+            timeRemaining: 0,
+            scoreUser: 0,
+            turnovers: 0, 
+            passesTotal: 0,
+            passesSuccess: 0,
+            interceptions: 0,
+            offsides: 0,
+            currentStreak: 0,
+            bestStreak: 0,
+            
+            players: [],
+            possessionId: null,
+            isAnimating: false,
+            roundActive: false,
+            timerInterval: null
+        };
+
+        // --- MENU LOGIC ---
+        function setMode(mode) {
+            state.mode = mode;
+            document.getElementById('tg-time').classList.toggle('active', mode === 'time');
+            document.getElementById('tg-goals').classList.toggle('active', mode === 'goals');
+            document.getElementById('opt-time').style.display = mode === 'time' ? 'flex' : 'none';
+            document.getElementById('opt-goals').style.display = mode === 'goals' ? 'flex' : 'none';
+        }
+
+        function setTarget(val, el) {
+            if (state.mode === 'time') state.timeTarget = val;
+            else state.goalsTarget = val;
+            
+            const siblings = el.parentElement.children;
+            for(let node of siblings) node.classList.remove('active');
+            el.classList.add('active');
+        }
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function showStartScreen() {
+            clearInterval(state.timerInterval);
+            switchScreen('screen-start');
+        }
+
+        // --- CORE LOOP ---
+        function startGame() {
+            if (actx && actx.state === 'suspended') actx.resume();
+            
+            state.scoreUser = 0;
+            state.turnovers = 0;
+            state.passesTotal = 0;
+            state.passesSuccess = 0;
+            state.interceptions = 0;
+            state.offsides = 0;
+            state.currentStreak = 0;
+            state.bestStreak = 0;
+            state.timeRemaining = state.timeTarget;
+
+            updateHUD();
+            
+            if (state.mode === 'time') {
+                state.timerInterval = setInterval(() => {
+                    if (!state.roundActive) return;
+                    state.timeRemaining--;
+                    updateTimerUI();
+                    if (state.timeRemaining <= 0) endGame('FULL TIME');
+                }, 1000);
+                updateTimerUI();
+            } else {
+                document.getElementById('hud-timer').innerText = `TO ${state.goalsTarget}`;
+            }
+
+            switchScreen('screen-game');
+            startRound();
+        }
+
+        function startRound() {
+            if (checkWinCondition()) return;
+            state.isAnimating = false;
+            state.roundActive = true;
+            document.getElementById('players-layer').classList.remove('locked');
+            
+            generateFormation();
+            assignTeams();
+            renderPlayers();
+            positionBallInstantly();
+        }
+
+        function checkWinCondition() {
+            if (state.mode === 'goals' && state.scoreUser >= state.goalsTarget) {
+                endGame('TARGET REACHED');
+                return true;
+            }
+            if (state.mode === 'time' && state.timeRemaining <= 0) {
+                endGame('FULL TIME');
+                return true;
+            }
+            return false;
+        }
+
+        function generateFormation() {
+            state.players = [];
+            let attempts = 0;
+            let minDist = 10; 
+            
+            while (state.players.length < 20 && attempts < 1500) {
+                attempts++;
+                let tx = 8 + Math.random() * 84;
+                let ty = 5 + Math.random() * 90;
+
+                // Force distribution to avoid empty zones
+                let len = state.players.length;
+                if (len < 4 && ty > 22) continue; // 4 in/near goal zone
+                if (len >= 4 && len < 10 && (ty < 30 || ty > 65)) continue; // 6 in midfield
+                if (len >= 10 && len < 15 && ty < 65) continue; // 5 deep
+
+                // Decrease min distance constraint gracefully if stuck
+                if (attempts > 500) minDist = 8;
+                if (attempts > 1000) minDist = 6;
+
+                let valid = true;
+                for (let p of state.players) {
+                    let dx = tx - p.x;
+                    let dy = ty - p.y;
+                    if (Math.hypot(dx, dy) < minDist) { valid = false; break; }
+                }
+                if (valid) state.players.push({ id: len, x: tx, y: ty });
+            }
+        }
+
+        function assignTeams() {
+            let teams = Array(10).fill('user').concat(Array(10).fill('opponent'));
+            teams.sort(() => Math.random() - 0.5); // Shuffle
+
+            state.players.forEach((p, i) => { p.team = teams[i]; });
+
+            // Ensure starting player is a user in the bottom half
+            let validStarts = state.players.filter(p => p.team === 'user' && p.y > 50);
+            if (!validStarts.length) validStarts = state.players.filter(p => p.team === 'user');
+            
+            let startP = validStarts[Math.floor(Math.random() * validStarts.length)];
+            state.possessionId = startP.id;
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById('players-layer');
+            container.innerHTML = '';
+
+            state.players.forEach(p => {
+                const el = document.createElement('div');
+                el.className = `player ${p.id === state.possessionId ? 'has-possession' : ''}`;
+                el.style.left = `${p.x}%`;
+                el.style.top = `${p.y}%`;
+                el.onclick = () => handlePass(p.id);
+                
+                el.innerHTML = `
+                    <div class="player-visual">
+                        <div class="player-head"></div>
+                        <div class="player-torso"></div>
+                        <div class="player-legs">
+                            <div class="player-leg l"></div>
+                            <div class="player-leg r"></div>
+                        </div>
+                    </div>
+                `;
+                p.el = el;
+                container.appendChild(el);
+            });
+        }
+
+        function positionBallInstantly() {
+            const ball = document.getElementById('ball');
+            const holder = state.players.find(p => p.id === state.possessionId);
+            if (holder) {
+                ball.style.transition = 'none';
+                ball.style.left = `${holder.x}%`;
+                ball.style.top = `${holder.y}%`;
+                void ball.offsetWidth; // Force reflow
+                ball.style.transition = 'left 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94), top 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            }
+        }
+
+        // --- GAMEPLAY MECHANICS ---
+        function handlePass(targetId) {
+            if (!state.roundActive || state.isAnimating || targetId === state.possessionId) return;
+            
+            state.isAnimating = true;
+            document.getElementById('players-layer').classList.add('locked');
+            playSound('pass');
+
+            const passer = state.players.find(p => p.id === state.possessionId);
+            const receiver = state.players.find(p => p.id === targetId);
+
+            // Calculate Offside Defensive Line
+            // Attacking towards Y=0. Defensive line is the minimum Y of opponents, plus 3% tolerance.
+            const opponents = state.players.filter(p => p.team === 'opponent');
+            const defLineY = Math.min(...opponents.map(p => p.y)) - 3; 
+
+            // Move ball
+            const ball = document.getElementById('ball');
+            ball.style.left = `${receiver.x}%`;
+            ball.style.top = `${receiver.y}%`;
+
+            // Wait for CSS animation
+            setTimeout(() => evaluatePassLogic(passer, receiver, defLineY), 300);
+        }
+
+        function evaluatePassLogic(passer, receiver, defLineY) {
+            // Remove old possession visual
+            if (passer && passer.el) passer.el.classList.remove('has-possession');
+
+            state.passesTotal++;
+
+            // 1. Interception
+            if (receiver.team === 'opponent') {
+                state.interceptions++;
+                state.turnovers++;
+                state.currentStreak = 0;
+                updateHUD();
+                
+                playSound('intercept');
+                showOverlay('INTERCEPTED', 'danger');
+                
+                // Briefly flash the receiver to confirm they were an opponent
+                receiver.el.querySelector('.player-visual').style.filter = 'drop-shadow(0 0 8px var(--danger))';
+                receiver.el.querySelector('.player-head').style.background = 'var(--danger)';
+                
+                setTimeout(() => startRound(), 700);
+                return;
+            }
+
+            // Teammate Logic
+            state.possessionId = receiver.id;
+            const isForwardPass = receiver.y < passer.y - 1; // Substantive forward movement
+            const isOffside = receiver.y < defLineY && isForwardPass;
+            const inGoalZone = receiver.y <= 22;
+
+            // 2. Offside
+            if (isOffside) {
+                state.offsides++;
+                state.turnovers++;
+                state.currentStreak = 0;
+                updateHUD();
+                
+                playSound('offside');
+                showOverlay('OFFSIDE', 'accent');
+                
+                setTimeout(() => startRound(), 700);
+                return;
+            }
+
+            // 3. Goal
+            if (inGoalZone && isForwardPass) {
+                state.passesSuccess++;
+                state.currentStreak++;
+                if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak;
+                state.scoreUser++;
+                updateHUD();
+                
+                playSound('goal');
+                showOverlay('GOAL!', 'success');
+                pulsePitch();
+                
+                setTimeout(() => startRound(), 1000);
+                return;
+            }
+
+            // 4. Successful Normal Pass
+            state.passesSuccess++;
+            state.currentStreak++;
+            if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak;
+            
+            receiver.el.classList.add('has-possession');
+            state.isAnimating = false;
+            document.getElementById('players-layer').classList.remove('locked');
+            updateHUD();
+        }
+
+        // --- UI UPDATES ---
+        function updateHUD() {
+            document.getElementById('hud-score-user').innerText = state.scoreUser;
+            document.getElementById('hud-score-opp').innerText = state.turnovers;
+            document.getElementById('hud-passes').innerText = state.passesTotal;
+            document.getElementById('hud-streak').innerText = state.currentStreak;
+            
+            const sr = state.passesTotal === 0 ? 0 : Math.round((state.passesSuccess / state.passesTotal) * 100);
+            document.getElementById('hud-success-rate').innerText = `${sr}%`;
+        }
+
+        function updateTimerUI() {
+            if (state.mode === 'time') {
+                const m = Math.floor(state.timeRemaining / 60);
+                const s = state.timeRemaining % 60;
+                document.getElementById('hud-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function showOverlay(text, type) {
+            const overlay = document.getElementById('message-overlay');
+            overlay.innerText = text;
+            overlay.className = '';
+            overlay.classList.add(type);
+            
+            void overlay.offsetWidth; // Reflow
+            overlay.classList.add('show');
+            
+            setTimeout(() => { overlay.classList.remove('show'); }, 600);
+        }
+
+        function pulsePitch() {
+            const p = document.getElementById('pitch-pulse');
+            p.classList.add('flash');
+            setTimeout(() => p.classList.remove('flash'), 150);
+        }
+
+        // --- END GAME ---
+        function endGame(reason) {
+            state.roundActive = false;
+            clearInterval(state.timerInterval);
+            document.getElementById('players-layer').classList.add('locked');
+            
+            document.getElementById('end-reason').innerText = reason;
+            document.getElementById('end-score-user').innerText = state.scoreUser;
+            document.getElementById('end-score-opp').innerText = state.turnovers;
+            
+            document.getElementById('end-passes').innerText = state.passesTotal;
+            document.getElementById('end-intercepts').innerText = state.interceptions;
+            document.getElementById('end-offsides').innerText = state.offsides;
+            
+            const sr = state.passesTotal === 0 ? 0 : Math.round((state.passesSuccess / state.passesTotal) * 100);
+            document.getElementById('end-success-rate').innerText = `${sr}%`;
+
+            setTimeout(() => switchScreen('screen-end'), 500);
+        }
+
+        function restartGame() { startGame(); }
+
+        // Initialize setup
+        setMode('time');
+    </script>
+</body>
+</html>
