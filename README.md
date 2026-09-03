@@ -2,7 +2,7 @@
   <h1>⚽ The Game Name is Pass</h1>
   <h3><em>The 60-Second Tactical Obsession.</em></h3>
 </div>
-<div align="center"> <img width="800px" src="demo.png" alt="Demo Image"> </div>
+<div align="center"> <img width="700px" src="demo.png" alt="Demo Image"> </div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
 [![Dependencies: None](https://img.shields.io/badge/Dependencies-Zero-emerald.svg)]()
@@ -10,7 +10,7 @@
 
 **Remember Google Chrome's Dino Game?** *PASS.* is built for that exact itch. 
 
-No 50GB downloads. No 20-minute tutorials. No login required. Just open `index.html` and test your tactical instinct in quick, high-stakes micro-sessions whenever you need a mental break.
+No large downloads. No 20-minute tutorials. No login required. Just open `index.html` or [PASS](https://pradeep-vishnu.github.io/The-Game-Name-Is-PASS/) and test your tactical instinct in quick, high-stakes micro-sessions whenever you need a mental break.
 
 [**PLAY NOW**](#-quick-start) • [**HOW TO PLAY**](#-how-to-play) • [**FEATURES**](#-key-features)
 
