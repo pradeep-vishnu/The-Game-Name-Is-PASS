@@ -1,5 +1,7 @@
-<div align="center"> # ⚽ The Game Name is Pass </div>
-<div align="center">### *The 60-Second Tactical Obsession.* </div>
+<div align="center">
+  <h1>⚽ The Game Name is Pass</h1>
+  <h3><em>The 60-Second Tactical Obsession.</em></h3>
+</div>
 <div align="center"> <img width="800px" src="demo.png" alt="Demo Image"> </div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
