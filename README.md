@@ -1,6 +1,6 @@
+<div align="center">
 # ⚽ The Game Name IS Pass </div>
 ### *The 60-Second Tactical Obsession.*
-
 <div align="center"> <img width="300px" src="demo.png" alt="Demo Image"> </div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
